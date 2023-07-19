@@ -90,6 +90,10 @@ var executeCmd = &cobra.Command{
 			return
 		}
 
+    // aicommand response
+    color.New(color.FgGreen).Printf("✔  ")
+    fmt.Printf("aicommand response! \n\n")
+
 		// Show the response
 		fmt.Println(resp.Choices[0].Message.Content)
 	},
