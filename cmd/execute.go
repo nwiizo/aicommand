@@ -2,7 +2,6 @@
 Package cmd : execute.go is executed by "go run main.go execute"
 Copyright © 2023 NAME HERE syu.m.5151@gmail.com
 */
-
 package cmd
 
 import (
@@ -13,10 +12,10 @@ import (
 	"os/exec"
 	"time"
 
-	openai "github.com/sashabaranov/go-openai"
-	"github.com/spf13/cobra"
 	"github.com/briandowns/spinner"
 	"github.com/fatih/color"
+	openai "github.com/sashabaranov/go-openai"
+	"github.com/spf13/cobra"
 )
 
 var language string
@@ -34,7 +33,8 @@ var executeCmd = &cobra.Command{
 	},
 	Run: func(cmd *cobra.Command, args []string) {
 		// Execute the command
-		shellCmd := exec.Command(args[0], args[1:]...)
+    shellCmd := exec.Command("/bin/sh", "-c", args[0])
+
 		var out bytes.Buffer
 		shellCmd.Stdout = &out
 		err := shellCmd.Run()
@@ -100,5 +100,3 @@ func init() {
 	executeCmd.Flags().StringVarP(&model, "model", "m", "gpt-3.5-turbo", "The model to be used for the OpenAI GPT (default is gpt-3.5-turbo)")
 	rootCmd.AddCommand(executeCmd)
 }
-
-

@@ -1,8 +1,7 @@
 /*
 Package cmd is the root of all commands.
 Copyright © 2023 syu.m.5151@gmail.com
-*/
-package cmd
+*/package cmd
 
 import (
 	"os"
@@ -13,13 +12,14 @@ import (
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "aicommand",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Short: "Shell command result analyzer using OpenAI GPT",
+	Long: `This tool allows you to send the result of a specified shell command to OpenAI GPT and get an explanation of that result.
+For example, use it as follows:
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+$ aicommand execute --language=ja "ls -la"
+
+The above command sends the result of the "ls -la" command to the GPT-3.5-turbo model and retrieves an explanation in Japanese.`,
+
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	// Run: func(cmd *cobra.Command, args []string) { },
