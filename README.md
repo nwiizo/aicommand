@@ -1,4 +1,10 @@
-# aicommand
+<div align="center">
+  <div>
+    <img src=".github/screenshot.png" alt="AI Commits"/>
+    <h1 align="center">AI Command</h1>
+  </div>
+</div>
+
 A CLI that uses AI to explain command results
 
 # Setup
