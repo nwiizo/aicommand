@@ -8,8 +8,8 @@
   </div>
 
 </div>
-[![scorecard](https://goreportcard.com/badge/github.com/nwiizo/aicommand)](https://goreportcard.com/report/github.com/nwiizo/aicommand)
-  
+
+
 # Setup 🔧
 Install aicommand:
 ```bash
