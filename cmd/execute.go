@@ -61,6 +61,7 @@ var executeCmd = &cobra.Command{
 		// Show the executed command and its result
 		color.New(color.FgCyan).Printf("Command executed: %v\n", shellCmd.String())
 		color.New(color.FgGreen).Printf("Result:\n%v\n\n", out.String())
+    color.New(color.FgYellow).Printf("Waiting for aicommand response... \n")
 
 		// Create a spinner
 		s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
