@@ -46,9 +46,21 @@ var executeCmd = &cobra.Command{
 		// Concatenate the executed command and its result
 		fullOutput := ""
 		if language == "en" {
-			fullOutput = fmt.Sprintf("Command executed: %v\nResult:\n%v\nCan you explain this result?.If you continue to have problems and need commands or responses, please let me know.", shellCmd.String(), out.String())
+      fullOutput = fmt.Sprintf(
+        "Command: %v\nOutput:\n%v\n" +
+        "Could you explain this output? " +
+        "Is there a problem with these results? Please advise on the necessary actions.",
+        shellCmd.String(),
+        out.String(),
+      )
 		} else if language == "ja" {
-			fullOutput = fmt.Sprintf("実行したコマンド: %v\n結果:\n%v\nこの結果について説明していただけますか？もし、問題があり続いてコマンドや対応が必要な場合には教えて下さい", shellCmd.String(), out.String())
+      fullOutput = fmt.Sprintf(
+	      "コマンド: %v\n結果:\n%v\n" +
+        "この結果について説明していただけますか？" +
+	      "この結果には問題がありますか？必要な対応を教えてください。",
+	      shellCmd.String(),
+	      out.String(),
+      )
 		}
 
 		// Fetch the API key
