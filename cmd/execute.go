@@ -55,11 +55,11 @@ var executeCmd = &cobra.Command{
       )
 		} else if language == "ja" {
       fullOutput = fmt.Sprintf(
-	      "コマンド: %v\n結果:\n%v\n" +
+        "コマンド: %v\n結果:\n%v\n" +
         "この結果について説明していただけますか？" +
-	      "この結果には問題がありますか？必要な対応を教えてください。",
-	      shellCmd.String(),
-	      out.String(),
+        "この結果には問題がありますか？必要な対応を教えてください。",
+        shellCmd.String(),
+        out.String(),
       )
 		}
 
