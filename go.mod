@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/briandowns/spinner v1.23.0
 	github.com/fatih/color v1.16.0
-	github.com/sashabaranov/go-openai v1.18.2
+	github.com/sashabaranov/go-openai v1.19.4
 	github.com/spf13/cobra v1.8.0
 )
 
