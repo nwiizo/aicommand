@@ -5,6 +5,7 @@ Copyright © 2023 NAME HERE syu.m.5151@gmail.com
 package cmd
 
 import (
+  "strings"
 	"bytes"
 	"context"
 	"fmt"
@@ -131,7 +132,15 @@ func generateFullOutput(language, executedCommand, output string) string {
 }
 
 func init() {
-	executeCmd.Flags().StringVarP(&language, "language", "l", "en", "Language for the command execution (en/ja)")
+  	// 環境変数LANGをチェックしてデフォルト言語を設定
+	langEnv := os.Getenv("LANG")
+	if strings.HasPrefix(langEnv, "ja") {
+		language = "ja"
+	} else {
+		// LANGが日本語以外の場合、または設定されていない場合は英語をデフォルトにする
+		language = "en"
+	}
+	executeCmd.Flags().StringVarP(&language, "language", "l", language , "Language for the command execution (en/ja)")
 	executeCmd.Flags().StringVarP(&model, "model", "m", "gpt-3.5-turbo", "The model to be used for the OpenAI GPT (default is gpt-3.5-turbo)")
 	rootCmd.AddCommand(executeCmd)
 }
