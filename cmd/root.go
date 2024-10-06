@@ -117,28 +117,43 @@ $ echo "example text" | aicommand`,
 }
 
 func generateFullOutput(language, executedCommand, output, customPrompt string) string {
-	var fullOutput string
-	if customPrompt != "" {
-		fullOutput = fmt.Sprintf(
-			"%s\nExecuted command or input source: %v\nOutput:\n%v",
-			customPrompt,
-			executedCommand,
-			output,
-		)
-	} else if language == "en" {
-		fullOutput = fmt.Sprintf(
-			"Executed command or input source: %v\nOutput:\n%v\nWhat does this output indicate? Are there any issues or further actions required?",
-			executedCommand,
-			output,
-		)
-	} else if language == "ja" {
-		fullOutput = fmt.Sprintf(
-			"実行されたコマンドまたは入力ソース: %v\n出力:\n%v\nこの出力が示すものは何ですか？ 問題はありますか、またはさらなるアクションが必要ですか？",
-			executedCommand,
-			output,
-		)
+	var template string
+
+	switch language {
+	case "en":
+		template = `Command: %s
+Output:
+%s
+
+AI Analysis Task:
+1. Summarize the output concisely.
+2. Identify any errors or warnings.
+3. Suggest next steps or optimizations if applicable.
+4. Explain any unusual or important aspects of the output.
+
+Context: %s`
+	case "ja":
+		template = `コマンド: %s
+出力:
+%s
+
+AI分析タスク:
+1. 出力を簡潔に要約してください。
+2. エラーや警告を特定してください。
+3. 該当する場合、次のステップや最適化を提案してください。
+4. 出力の異常な点や重要な側面を説明してください。
+
+コンテキスト: %s`
+	default:
+		return generateFullOutput("en", executedCommand, output, customPrompt)
 	}
-	return fullOutput
+
+	context := customPrompt
+	if context == "" {
+		context = "No additional context provided."
+	}
+
+	return fmt.Sprintf(template, executedCommand, output, context)
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
