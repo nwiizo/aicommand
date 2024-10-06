@@ -1,7 +1,3 @@
-/*
-Package cmd is the root of all commands.
-Copyright © 2023 syu.m.5151@gmail.com
-*/
 package cmd
 
 import (
@@ -26,7 +22,6 @@ var (
 	customPrompt string
 )
 
-// rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "aicommand [command]",
 	Short: "Shell command result analyzer using OpenAI GPT",
@@ -41,87 +36,81 @@ You can also pipe input to the command:
 
 $ echo "example text" | aicommand`,
 	Args: cobra.ArbitraryArgs,
-	Run: func(cmd *cobra.Command, args []string) {
-		var input string
-		var executedCommand string
-		var err error
+	Run:  runAICommand,
+}
 
-		if len(args) == 0 {
-			// Reading from stdin
-			inputBytes, err := io.ReadAll(os.Stdin)
-			if err != nil {
-				color.New(color.FgRed).Printf("Error reading from stdin: %v\n", err)
-				return
-			}
-			input = string(inputBytes)
-			executedCommand = "Input from pipeline"
-		} else {
-			// Executing the provided command
-			shell := os.Getenv("SHELL")
-			if shell == "" {
-				shell = "/bin/sh"
-				fmt.Println("Using /bin/sh as a fallback since the SHELL environment variable is not set.")
-			}
-			shellCmd := exec.Command(shell, "-c", strings.Join(args, " "))
-			executedCommand = strings.Join(args, " ")
-			var out bytes.Buffer
-			shellCmd.Stdout = &out
-			err = shellCmd.Run()
-			if err != nil {
-				color.New(color.FgRed).Printf("Error executing command: %v\n", err)
-				return
-			}
-			input = out.String()
-		}
+func runAICommand(cmd *cobra.Command, args []string) {
+	input, executedCommand, err := getInput(args)
+	if err != nil {
+		color.Red("Error: %v", err)
+		return
+	}
 
-		fullOutput := generateFullOutput(language, executedCommand, input, customPrompt)
+	fullOutput := generateFullOutput(language, executedCommand, input, customPrompt)
 
-		apiKey := os.Getenv("OPENAI_API_KEY")
-		if apiKey == "" {
-			fmt.Println("Error: OPENAI_API_KEY is not set")
-			return
-		}
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		color.Red("Error: OPENAI_API_KEY is not set")
+		return
+	}
 
-		color.New(color.FgCyan).Printf("Data received for analysis.\n")
-		color.New(color.FgGreen).Printf("Result:\n%v\n\n", input)
-		color.New(color.FgYellow).Printf("Waiting for AI response... \n")
+	color.Cyan("Data received for analysis.")
+	color.Green("Result:\n%v\n", input)
+	color.Yellow("Waiting for AI response...")
 
-		s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
-		s.Start()
+	s := spinner.New(spinner.CharSets[9], 100*time.Millisecond)
+	s.Start()
 
-		client := openai.NewClient(apiKey)
+	response, err := getAIResponse(apiKey, fullOutput)
+	s.Stop()
 
-		resp, err := client.CreateChatCompletion(
-			context.Background(),
-			openai.ChatCompletionRequest{
-				Model: model,
-				Messages: []openai.ChatCompletionMessage{
-					{
-						Role:    openai.ChatMessageRoleUser,
-						Content: fullOutput,
-					},
-				},
-			},
-		)
+	if err != nil {
+		color.Red("Error: %v", err)
+		return
+	}
 
-		s.Stop()
+	color.Green("✔ AI response received!\n")
+	fmt.Println(response)
+}
 
+func getInput(args []string) (string, string, error) {
+	if len(args) == 0 {
+		inputBytes, err := io.ReadAll(os.Stdin)
 		if err != nil {
-			fmt.Printf("ChatCompletion error: %v\n", err)
-			return
+			return "", "", fmt.Errorf("error reading from stdin: %v", err)
 		}
+		return string(inputBytes), "Input from pipeline", nil
+	}
 
-		color.New(color.FgGreen).Printf("✔ AI response received! \n\n")
-		fmt.Println(resp.Choices[0].Message.Content)
-	},
+	shell := getShell()
+	shellCmd := exec.Command(shell, "-c", strings.Join(args, " "))
+	var out bytes.Buffer
+	shellCmd.Stdout = &out
+	err := shellCmd.Run()
+	if err != nil {
+		return "", "", fmt.Errorf("error executing command: %v", err)
+	}
+	return out.String(), strings.Join(args, " "), nil
+}
+
+func getShell() string {
+	shell := os.Getenv("SHELL")
+	if shell == "" {
+		shell = "/bin/sh"
+		fmt.Println("Using /bin/sh as a fallback since the SHELL environment variable is not set.")
+	}
+	return shell
 }
 
 func generateFullOutput(language, executedCommand, output, customPrompt string) string {
-	var template string
+	template := getTemplate(language)
+	context := getContext(customPrompt)
+	return fmt.Sprintf(template, executedCommand, output, context)
+}
 
-	switch language {
-	case "en":
-		template = `Command: %s
+func getTemplate(language string) string {
+	templates := map[string]string{
+		"en": `Command: %s
 Output:
 %s
 
@@ -131,9 +120,8 @@ AI Analysis Task:
 3. Suggest next steps or optimizations if applicable.
 4. Explain any unusual or important aspects of the output.
 
-Context: %s`
-	case "ja":
-		template = `コマンド: %s
+Context: %s`,
+		"ja": `コマンド: %s
 出力:
 %s
 
@@ -143,21 +131,43 @@ AI分析タスク:
 3. 該当する場合、次のステップや最適化を提案してください。
 4. 出力の異常な点や重要な側面を説明してください。
 
-コンテキスト: %s`
-	default:
-		return generateFullOutput("en", executedCommand, output, customPrompt)
+コンテキスト: %s`,
 	}
 
-	context := customPrompt
-	if context == "" {
-		context = "No additional context provided."
+	if template, ok := templates[language]; ok {
+		return template
 	}
-
-	return fmt.Sprintf(template, executedCommand, output, context)
+	return templates["en"]
 }
 
-// Execute adds all child commands to the root command and sets flags appropriately.
-// This is called by main.main(). It only needs to happen once to the rootCmd.
+func getContext(customPrompt string) string {
+	if customPrompt == "" {
+		return "No additional context provided."
+	}
+	return customPrompt
+}
+
+func getAIResponse(apiKey, fullOutput string) (string, error) {
+	client := openai.NewClient(apiKey)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: model,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: fullOutput,
+				},
+			},
+		},
+	)
+	if err != nil {
+		return "", fmt.Errorf("ChatCompletion error: %v", err)
+	}
+
+	return resp.Choices[0].Message.Content, nil
+}
+
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
@@ -166,16 +176,16 @@ func Execute() {
 }
 
 func init() {
-	// Set default language based on LANG environment variable
-	langEnv := os.Getenv("LANG")
-	if len(langEnv) >= 2 && langEnv[:2] == "ja" {
-		language = "ja"
-	} else {
-		language = "en"
-	}
-
-	// Add flags to rootCmd
+	language = getDefaultLanguage()
 	rootCmd.Flags().StringVarP(&language, "language", "l", language, "Language for the command execution (en/ja)")
 	rootCmd.Flags().StringVarP(&model, "model", "m", "gpt-3.5-turbo", "The model to be used for the OpenAI GPT (default is gpt-3.5-turbo)")
 	rootCmd.Flags().StringVarP(&customPrompt, "prompt", "p", "", "Custom prompt to be sent to the AI")
+}
+
+func getDefaultLanguage() string {
+	langEnv := os.Getenv("LANG")
+	if len(langEnv) >= 2 && langEnv[:2] == "ja" {
+		return "ja"
+	}
+	return "en"
 }
