@@ -24,12 +24,17 @@ export OPENAI_API_KEY=your_api_key
 # Usage ⏳
 Run commands without options like this:
 ```bash
-aicommand execute uptime
+aicommand uptime
 ```
 
 Run commands options like this:
 ```bash
-aicommand execute "ls -al"
+aicommand "ls -al"
+```
+
+Run commands with options and prompt like this:
+```bash
+aicommand "ls -al" --prompt="What kind of directory is it?"
 ```
 
 # Note 📝
