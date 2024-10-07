@@ -144,7 +144,7 @@ func getContext(customPrompt string) string {
 	if customPrompt == "" {
 		return "No additional context provided."
 	}
-	return customPrompt
+	return "Additional context: " + customPrompt + "\nPlease consider this information as most valuable."
 }
 
 func getAIResponse(apiKey, fullOutput string) (string, error) {
