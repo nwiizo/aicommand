@@ -3,7 +3,7 @@ module github.com/nwiizo/aicommand
 go 1.20
 
 require (
-	github.com/briandowns/spinner v1.23.1
+	github.com/briandowns/spinner v1.23.2
 	github.com/fatih/color v1.18.0
 	github.com/sashabaranov/go-openai v1.31.0
 	github.com/spf13/cobra v1.8.1
